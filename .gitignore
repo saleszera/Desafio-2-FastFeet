@@ -4,4 +4,4 @@
 
 yarn.lock
 
-.sequelizerc
+.env
