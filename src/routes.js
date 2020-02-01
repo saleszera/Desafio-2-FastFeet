@@ -1,9 +1,15 @@
 import { Router } from 'express';
 
-const routes = Router();
+import UserController from './app/controllers/UserController';
+import SessionControler from './app/controllers/SessionController';
+import authMiddleware from './app/middlewares/auth';
 
-routes.get('/', (req, res) => {
-  return res.json({ Message: "It's Works!" });
-});
+const routes = new Router();
+
+routes.post('/users', UserController.store);
+routes.post('/sessions', SessionControler.store);
+
+routes.use(authMiddleware);
+routes.put('/users', UserController.put);
 
 export default routes;
