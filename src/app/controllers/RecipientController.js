@@ -17,27 +17,29 @@ class RecipientController {
     }
 
     const { nome, numero, complemento } = req.body;
+    try {
+      const { cep, logradouro, bairro, localidade, uf } = await searchCep(
+        req.body.cep
+      );
 
-    const { cep, logradouro, bairro, localidade, uf } = await searchCep(
-      req.body.cep
-    );
+      const endereco = await Recipient.create({
+        nome,
+        rua: logradouro,
+        numero,
+        bairro,
+        complemento,
+        estado: uf,
+        cidade: localidade,
+        cep,
+      });
 
-    const endereco = await Recipient.create({
-      nome,
-      rua: logradouro,
-      numero,
-      bairro,
-      complemento,
-      estado: uf,
-      cidade: localidade,
-      cep,
-    });
-
-    return res.json(endereco);
+      return res.json(endereco);
+    } catch (err) {
+      return res.status(400).json({ Error: 'Bad request' });
+    }
   }
 
   async show(req, res) {
-    console.log(Recipient);
     const destinatarios = await Recipient.findAll();
     return res.json(destinatarios);
   }
