@@ -19,5 +19,6 @@ routes.get('/users', UserController.show);
 routes.post('/recipient', RecipientController.store);
 routes.get('/recipient', RecipientController.show);
 routes.put('/recipient', RecipientController.put);
+routes.delete('/recipient/:id', RecipientController.delete);
 
 export default routes;
