@@ -13,7 +13,7 @@ class RecipientController {
     });
 
     if (!schema.isValid(req.body)) {
-      return res.status(400).json({ Error: 'Validation is fails' });
+      return res.status(400).json({ Error: 'Validation is fails!' });
     }
 
     const { nome, numero, complemento } = req.body;
@@ -56,14 +56,14 @@ class RecipientController {
     });
 
     if (!schema.isValid(req.body)) {
-      return res.status(400).json({ Error: 'Validation fails' });
+      return res.status(400).json({ Error: 'Validation fails!' });
     }
 
     const { id } = req.body;
     const destinatario = await Recipient.findByPk(id);
 
     if (!destinatario) {
-      return res.status(400).json({ Error: 'Recipiend does not exist' });
+      return res.status(400).json({ Error: 'Recipiend does not exist!' });
     }
 
     const {
@@ -87,6 +87,18 @@ class RecipientController {
       cidade,
       cep,
     });
+  }
+
+  async delete(req, res) {
+    const { id } = req.params;
+    console.log(id);
+    const user = await Recipient.findByPk(id);
+    if (!user) {
+      return res.status(400).json({ Error: 'User does not exist!' });
+    }
+    await Recipient.destroy({ where: { id } });
+
+    return res.status(200).json({});
   }
 }
 
