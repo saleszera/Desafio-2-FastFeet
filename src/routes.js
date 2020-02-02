@@ -16,5 +16,6 @@ routes.use(authMiddleware);
 routes.put('/users', UserController.put);
 routes.use(onlyAdminMiddleware);
 routes.post('/recipient', RecipientController.store);
+routes.get('/recipient', RecipientController.show);
 
 export default routes;
