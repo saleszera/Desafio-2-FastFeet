@@ -14,6 +14,7 @@ routes.post('/sessions', SessionControler.store);
 
 routes.use(authMiddleware);
 routes.put('/users', UserController.put);
+routes.delete('/users/:id', UserController.delete);
 routes.use(onlyAdminMiddleware);
 routes.get('/users', UserController.show);
 routes.post('/recipient', RecipientController.store);
