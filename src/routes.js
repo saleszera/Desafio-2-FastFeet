@@ -15,6 +15,7 @@ routes.post('/sessions', SessionControler.store);
 routes.use(authMiddleware);
 routes.put('/users', UserController.put);
 routes.use(onlyAdminMiddleware);
+routes.get('/users', UserController.show);
 routes.post('/recipient', RecipientController.store);
 routes.get('/recipient', RecipientController.show);
 routes.put('/recipient', RecipientController.put);
