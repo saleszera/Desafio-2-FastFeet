@@ -35,6 +35,12 @@ class RecipientController {
 
     return res.json(endereco);
   }
+
+  async show(req, res) {
+    console.log(Recipient);
+    const destinatarios = await Recipient.findAll();
+    return res.json(destinatarios);
+  }
 }
 
 export default new RecipientController();
