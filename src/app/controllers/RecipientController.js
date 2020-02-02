@@ -41,6 +41,53 @@ class RecipientController {
     const destinatarios = await Recipient.findAll();
     return res.json(destinatarios);
   }
+
+  async put(req, res) {
+    const schema = Yup.object().shape({
+      id: Yup.string().required(),
+      nome: Yup.string(),
+      rua: Yup.string(),
+      numero: Yup.string(),
+      bairro: Yup.string(),
+      complemento: Yup.string(),
+      estado: Yup.string(),
+      cidade: Yup.string(),
+      cep: Yup.string(),
+    });
+
+    if (!schema.isValid(req.body)) {
+      return res.status(400).json({ Error: 'Validation fails' });
+    }
+
+    const { id } = req.body;
+    const destinatario = await Recipient.findByPk(id);
+
+    if (!destinatario) {
+      return res.status(400).json({ Error: 'Recipiend does not exist' });
+    }
+
+    const {
+      nome,
+      rua,
+      numero,
+      bairro,
+      complemento,
+      estado,
+      cidade,
+      cep,
+    } = await destinatario.update(req.body);
+
+    return res.json({
+      nome,
+      rua,
+      numero,
+      bairro,
+      complemento,
+      estado,
+      cidade,
+      cep,
+    });
+  }
 }
 
 export default new RecipientController();
