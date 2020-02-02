@@ -83,6 +83,19 @@ class UserController {
     const users = await User.findAll();
     return res.json(users);
   }
+
+  async delete(req, res) {
+    const { id } = req.params;
+
+    if (id !== req.userId) {
+      return res
+        .status(403)
+        .json({ Error: 'You can delete only your account!' });
+    }
+    await User.destroy({ where: { id } });
+
+    return res.json({});
+  }
 }
 
 export default new UserController();
