@@ -3,6 +3,7 @@ import { Router } from 'express';
 import UserController from './app/controllers/UserController';
 import SessionControler from './app/controllers/SessionController';
 import RecipientController from './app/controllers/RecipientController';
+import DeliverymanController from './app/controllers/DeliverymanController';
 // middlewares
 import authMiddleware from './app/middlewares/auth';
 import onlyAdminMiddleware from './app/middlewares/onlyAdmin';
@@ -21,5 +22,6 @@ routes.post('/recipient', RecipientController.store);
 routes.get('/recipient', RecipientController.show);
 routes.put('/recipient', RecipientController.put);
 routes.delete('/recipient/:id', RecipientController.delete);
+routes.post('/deliverymans', DeliverymanController.store);
 
 export default routes;
