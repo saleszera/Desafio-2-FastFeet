@@ -1,13 +1,15 @@
 import * as Yup from 'yup';
 import Deliveryman from '../models/Deliveryman';
+import File from '../models/File';
 
 class DeliverymanController {
   async store(req, res) {
     const schema = Yup.object().shape({
-      nome: Yup.string().required(),
+      name: Yup.string().required(),
       email: Yup.string()
         .email()
         .required(),
+      avatar_id: Yup.number(),
     });
 
     if (!(await schema.isValid(req.body))) {
@@ -16,17 +18,24 @@ class DeliverymanController {
     if (await Deliveryman.findOne({ where: { email: req.body.email } })) {
       return res.status(400).json({ Error: 'Email already exists!' });
     }
-    const { id, nome, email } = await Deliveryman.create(req.body);
-    return res.json({ id, nome, email });
+    const { id, name, email } = await Deliveryman.create(req.body);
+    return res.json({ id, name, email });
   }
 
   async index(req, res) {
     const { page = 1 } = req.query;
     const deliverymans = await Deliveryman.findAll({
-      order: ['nome'],
+      order: ['name'],
       limit: 20,
       offset: (page - 1) * 20,
-      attributes: ['id', 'nome', 'email'],
+      attributes: ['id', 'name', 'email', 'avatar_id'],
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['path', 'url'],
+        },
+      ],
     });
 
     return res.json(deliverymans);
@@ -55,7 +64,7 @@ class DeliverymanController {
     }
 
     const schema = Yup.object().shape({
-      nome: Yup.string(),
+      name: Yup.string(),
       email: Yup.string().email(),
     });
 
@@ -69,9 +78,9 @@ class DeliverymanController {
       return res.status(400).json({ Error: 'Email already exists!' });
     }
 
-    const { id, nome } = await deliveryman.update(req.body);
+    const { id, name } = await deliveryman.update(req.body);
 
-    return res.json({ id, nome, email });
+    return res.json({ id, name, email });
   }
 
   async show(req, res) {
@@ -79,7 +88,14 @@ class DeliverymanController {
       const { id } = req.params;
       const deliveryman = await Deliveryman.findOne({
         where: { id },
-        attributes: ['id', 'nome', 'email'],
+        attributes: ['id', 'name', 'email', 'avatar_id'],
+        include: [
+          {
+            model: File,
+            as: 'avatar',
+            attributes: ['path', 'url'],
+          },
+        ],
       });
 
       if (deliveryman === null) {

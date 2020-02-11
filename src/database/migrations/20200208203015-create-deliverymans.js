@@ -7,7 +7,7 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
       },
-      nome: {
+      name: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -28,6 +28,6 @@ module.exports = {
   },
 
   down: queryInterface => {
-    return queryInterface.dropTable('delliverymans');
+    return queryInterface.dropTable('deliverymans');
   },
 };
