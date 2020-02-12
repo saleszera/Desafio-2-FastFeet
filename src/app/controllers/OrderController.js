@@ -2,7 +2,6 @@ import * as Yup from 'yup';
 import Order from '../models/Order';
 import Recipient from '../models/Recipient';
 import Deliveryman from '../models/Deliveryman';
-import File from '../models/File';
 
 class OrderController {
   async store(req, res) {
@@ -38,11 +37,6 @@ class OrderController {
   }
 
   async index(req, res) {
-    // const isId = await Order.findOne({ where: { id: req.params.id } });
-
-    // if (!isId) {
-    //   return res.status(400).json({ Error: 'ID does not exist!' });
-    // }
     const { page = 1 } = req.query;
     const orders = await Order.findAll({
       order: ['created_at'],
@@ -70,6 +64,51 @@ class OrderController {
     await Order.destroy({ where: { id: req.params.id } });
 
     return res.status(200).json({});
+  }
+
+  async put(req, res) {
+    const order = await Order.findOne({ where: { id: req.params.id } });
+
+    if (!order) {
+      return res.status(400).json({ Error: 'Order ID does not exist!' });
+    }
+
+    const schema = Yup.object().shape({
+      recipient_id: Yup.number(),
+      deliveryman_id: Yup.number(),
+      product: Yup.string(),
+    });
+
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ Error: 'Validation fails' });
+    }
+
+    try {
+      await order.update(req.body);
+      return res.status(200).json({ order });
+    } catch (err) {
+      return res.status(500).json({ Error: 'Anything wrong happend...' });
+    }
+  }
+
+  async show(req, res) {
+    const isId = await Order.findOne({ where: { id: req.params.id } });
+
+    if (!isId) {
+      return res.status(400).json({ Error: 'ID does not exist!' });
+    }
+    const order = await Order.findOne({
+      where: { id: req.params.id },
+      attributes: [
+        'id',
+        'product',
+        'deliveryman_id',
+        'recipient_id',
+        'signatures_id',
+      ],
+    });
+
+    return res.json(order);
   }
 }
 
