@@ -1,9 +1,10 @@
 import { Op } from 'sequelize';
-import { isBefore, parseISO } from 'date-fns';
+import { isBefore, parseISO, format } from 'date-fns';
 import * as Yup from 'yup';
 import Order from '../models/Order';
 import Recipient from '../models/Recipient';
 import Deliveryman from '../models/Deliveryman';
+import File from '../models/File';
 
 class DeliverymanAccessController {
   async index(req, res) {
@@ -92,7 +93,7 @@ class DeliverymanAccessController {
     return res.json(order);
   }
 
-  async put(req, res) {
+  async withdraw(req, res) {
     const isDeliveryman = await Deliveryman.findOne({
       where: { id: req.params.id },
     });
@@ -106,7 +107,7 @@ class DeliverymanAccessController {
       start_date: Yup.date(),
       end_date: Yup.date(),
     });
-
+    const { start_date, end_date } = req.body;
     if (!(await schema.isValid(req.body))) {
       return res.status(400).json({ Error: 'Validation fails!' });
     }
@@ -117,14 +118,13 @@ class DeliverymanAccessController {
       return res.status(400).json({ Error: 'Order id does not exist!' });
     }
 
-    if (isBefore(parseISO(req.body.start_date), new Date()) === true) {
+    if (isBefore(parseISO(start_date), new Date()) === true) {
       return res.status(400).json({ Error: 'Start date is before today!' });
     }
 
     if (
-      req.body.end_date &&
-      isBefore(parseISO(req.body.start_date), parseISO(req.body.end_date)) ===
-        false
+      end_date &&
+      isBefore(parseISO(start_date), parseISO(end_date)) === false
     ) {
       return res.status(400).json({ Error: 'End date is before start date!' });
     }
@@ -133,8 +133,70 @@ class DeliverymanAccessController {
       return res.status(401).json({ Error: 'You can not do it!' });
     }
 
-    const { id, product, start_date, end_date } = await order.update(req.body);
+    const start = format(parseISO(start_date), 'HH:mm')
+      .split(':')
+      .join('')
+      .split('0')
+      .join('');
+
+    if (start < 8 || start > 18) {
+      return res.status(400).json({ Error: 'You can not start at this hour!' });
+    }
+
+    const end = format(parseISO(end_date), 'HH:mm')
+      .split(':')
+      .join('')
+      .split('0')
+      .join('');
+
+    if (end < 8 || end > 18) {
+      return res.status(400).json({ Error: 'You can not end at this hour!' });
+    }
+
+    const { id, product } = await order.update(req.body);
     return res.json({ id, product, start_date, end_date });
+  }
+
+  async signature(req, res) {
+    const deliveryman = await Deliveryman.findOne({
+      where: { id: req.params.id },
+    });
+
+    if (!deliveryman) {
+      return res.status(401).json({ Error: 'Deliveryman does not exist!' });
+    }
+
+    const order = await Order.findOne({
+      where: { id: req.params.order },
+    });
+
+    if (!order) {
+      return res.status(401).json({ Error: 'Order does not exist!' });
+    }
+
+    const { originalname: name, filename: path } = req.file;
+    console.log(req.file);
+
+    const { id, url } = await File.create({ name, path });
+
+    const {
+      product,
+      deliveryman_id,
+      recipient_id,
+      start_date,
+      end_date,
+    } = await order.update({ signatures_id: id });
+
+    return res.json(
+      product,
+      deliveryman_id,
+      recipient_id,
+      start_date,
+      end_date,
+      url
+    );
+
+    // return res.json({ Message: 'ok' });
   }
 }
 
