@@ -19,7 +19,12 @@ const upload = multer(multerConfig);
 routes.post('/users', UserController.store);
 routes.post('/sessions', SessionControler.store);
 routes.get('/deliveryman/:id', DeliveryAccessController.index);
-routes.put('/deliveryman/:id', DeliveryAccessController.put);
+routes.put('/deliveryman/:id', DeliveryAccessController.withdraw);
+routes.post(
+  '/deliveryman/:id/:order',
+  upload.single('file'),
+  DeliveryAccessController.signature
+);
 routes.get('/deliveryman/:id/deliveries', DeliveryAccessController.deliveries);
 
 routes.use(authMiddleware);
