@@ -175,7 +175,6 @@ class DeliverymanAccessController {
     }
 
     const { originalname: name, filename: path } = req.file;
-    console.log(req.file);
 
     const { id, url } = await File.create({ name, path });
 
@@ -195,8 +194,6 @@ class DeliverymanAccessController {
       end_date,
       url
     );
-
-    // return res.json({ Message: 'ok' });
   }
 }
 

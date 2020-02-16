@@ -3,26 +3,26 @@ module.exports = {
     return queryInterface.createTable('files', {
       id: {
         type: Sequelize.INTEGER,
-        allownull: false,
+        allowNull: false,
         autoIncrement: true,
         primaryKey: true,
       },
       name: {
         type: Sequelize.STRING,
-        allownull: false,
+        allowNull: false,
       },
       path: {
         type: Sequelize.STRING,
-        allownull: false,
+        allowNull: false,
         unique: true,
       },
       created_at: {
         type: Sequelize.DATE,
-        allownull: false,
+        allowNull: false,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allownull: false,
+        allowNull: false,
       },
     });
   },

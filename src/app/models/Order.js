@@ -27,7 +27,7 @@ class Order extends Model {
     });
     this.belongsTo(models.Recipient, {
       foreignKey: 'recipient_id',
-      as: 'recipientId',
+      as: 'recipient',
     });
   }
 }
