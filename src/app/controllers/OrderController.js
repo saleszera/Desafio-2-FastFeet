@@ -1,7 +1,12 @@
 import * as Yup from 'yup';
+
 import Order from '../models/Order';
 import Recipient from '../models/Recipient';
 import Deliveryman from '../models/Deliveryman';
+
+import OrderMail from '../jobs/OrderMail';
+import CancellationMail from '../jobs/CancellationMail';
+import Queue from '../../lib/Queue';
 
 class OrderController {
   async store(req, res) {
@@ -33,6 +38,18 @@ class OrderController {
     }
 
     const { id, product } = await Order.create(req.body);
+    const newOrder = await Order.findByPk(id, {
+      include: {
+        model: Deliveryman,
+        as: 'delivery',
+        attributes: ['id', 'name', 'email'],
+      },
+    });
+
+    await Queue.add(OrderMail.key, {
+      newOrder,
+    });
+
     return res.json({ id, product, recipient_id, deliveryman_id });
   }
 
@@ -55,19 +72,47 @@ class OrderController {
   }
 
   async delete(req, res) {
-    const isId = await Order.findOne({ where: { id: req.params.id } });
+    const order = await Order.findOne({
+      where: { id: req.params.id },
+      attributes: [
+        'id',
+        'product',
+        'start_date',
+        'end_date',
+        'canceled_at',
+        'deliveryman_id',
+        'recipient_id',
+        'signatures_id',
+      ],
+      include: {
+        model: Deliveryman,
+        as: 'delivery',
+        attributes: ['name', 'email'],
+      },
+    });
 
-    if (!isId) {
-      return res.status(400).json({ Error: 'ID does not exist!' });
+    if (!order) {
+      return res.status(400).json({ Error: 'Order does not exist!' });
     }
 
-    await Order.destroy({ where: { id: req.params.id } });
+    if (order.canceled_at !== null) {
+      return res.status(400).json({ Error: 'Order have already canceled!' });
+    }
 
-    return res.status(200).json({});
+    order.canceled_at = new Date();
+    order.save();
+
+    await Queue.add(CancellationMail.key, {
+      order,
+    });
+
+    return res.json(order);
   }
 
   async put(req, res) {
-    const order = await Order.findOne({ where: { id: req.params.id } });
+    const order = await Order.findOne({
+      where: { id: req.params.id, canceled_at: null },
+    });
 
     if (!order) {
       return res.status(400).json({ Error: 'Order ID does not exist!' });
@@ -84,19 +129,32 @@ class OrderController {
     }
 
     try {
-      await order.update(req.body);
-      return res.status(200).json({ order });
+      const {
+        id,
+        product,
+        deliveryman_id,
+        recipient_id,
+        signatures_id,
+        start_date,
+        end_date,
+        canceled_at,
+      } = await order.update(req.body);
+      return res.status(200).json({
+        id,
+        product,
+        deliveryman_id,
+        recipient_id,
+        signatures_id,
+        start_date,
+        end_date,
+        canceled_at,
+      });
     } catch (err) {
       return res.status(500).json({ Error: 'Anything wrong happend...' });
     }
   }
 
   async show(req, res) {
-    const isId = await Order.findOne({ where: { id: req.params.id } });
-
-    if (!isId) {
-      return res.status(400).json({ Error: 'ID does not exist!' });
-    }
     const order = await Order.findOne({
       where: { id: req.params.id },
       attributes: [
@@ -106,7 +164,24 @@ class OrderController {
         'recipient_id',
         'signatures_id',
       ],
+      include: {
+        model: Recipient,
+        as: 'recipient',
+        attributes: [
+          'nome',
+          'rua',
+          'numero',
+          'bairro',
+          'cidade',
+          'estado',
+          'cep',
+        ],
+      },
     });
+
+    if (!order) {
+      return res.status(400).json({ Error: 'ID does not exist!' });
+    }
 
     return res.json(order);
   }

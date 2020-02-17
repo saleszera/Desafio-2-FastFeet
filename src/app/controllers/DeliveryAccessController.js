@@ -1,6 +1,7 @@
 import { Op } from 'sequelize';
 import { isBefore, parseISO, format } from 'date-fns';
 import * as Yup from 'yup';
+
 import Order from '../models/Order';
 import Recipient from '../models/Recipient';
 import Deliveryman from '../models/Deliveryman';
@@ -16,12 +17,15 @@ class DeliverymanAccessController {
       return res.status(401).json({ Error: 'Deliveryman does not exist!' });
     }
 
+    const { page = 1 } = req.query;
     const order = await Order.findAll({
       where: {
         deliveryman_id: req.params.id,
         end_date: null,
         canceled_at: null,
       },
+      limit: 20,
+      offset: (page - 1) * 20,
       attributes: [
         'id',
         'product',
@@ -159,7 +163,7 @@ class DeliverymanAccessController {
 
   async signature(req, res) {
     const deliveryman = await Deliveryman.findOne({
-      where: { id: req.params.id },
+      where: { id: req.params.deliverymanId },
     });
 
     if (!deliveryman) {
@@ -167,7 +171,7 @@ class DeliverymanAccessController {
     }
 
     const order = await Order.findOne({
-      where: { id: req.params.order },
+      where: { id: req.params.order, signatures_id: null },
     });
 
     if (!order) {
@@ -186,14 +190,14 @@ class DeliverymanAccessController {
       end_date,
     } = await order.update({ signatures_id: id });
 
-    return res.json(
+    return res.json({
       product,
       deliveryman_id,
       recipient_id,
+      signatures_id: url,
       start_date,
       end_date,
-      url
-    );
+    });
   }
 }
 

@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+
 import Recipient from '../models/Recipient';
 
 import searchCep from '../../utils/searchCep';
@@ -39,8 +40,23 @@ class RecipientController {
     }
   }
 
-  async show(req, res) {
-    const destinatarios = await Recipient.findAll();
+  async index(req, res) {
+    const { page = 1 } = req.query;
+    const destinatarios = await Recipient.findAll({
+      limit: 20,
+      offset: (page - 1) * 20,
+      attributes: [
+        'id',
+        'nome',
+        'rua',
+        'numero',
+        'bairro',
+        'complemento',
+        'cidade',
+        'estado',
+        'cep',
+      ],
+    });
     return res.json(destinatarios);
   }
 
@@ -93,14 +109,14 @@ class RecipientController {
 
   async delete(req, res) {
     const { id } = req.params;
-    console.log(id);
-    const user = await Recipient.findByPk(id);
-    if (!user) {
+
+    const recipient = await Recipient.findByPk(id);
+    if (!recipient) {
       return res.status(400).json({ Error: 'User does not exist!' });
     }
-    await Recipient.destroy({ where: { id } });
+    recipient.destroy();
 
-    return res.status(200).json({});
+    return res.status(200).json({ Message: 'ok' });
   }
 }
 

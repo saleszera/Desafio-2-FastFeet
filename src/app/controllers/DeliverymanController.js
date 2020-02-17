@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+
 import Deliveryman from '../models/Deliveryman';
 import File from '../models/File';
 
@@ -42,16 +43,16 @@ class DeliverymanController {
   }
 
   async delete(req, res) {
-    const isUserId = await Deliveryman.findOne({
+    const deliveryman = await Deliveryman.findOne({
       where: { id: req.params.id },
     });
 
-    if (!isUserId) {
+    if (!deliveryman) {
       return res.status(400).json({ Error: 'User ID does not exist!' });
     }
 
-    await Deliveryman.destroy({ where: { id: req.params.id } });
-    return res.status(200).json({});
+    deliveryman.destroy();
+    return res.status(200).json({ Message: 'ok' });
   }
 
   async put(req, res) {
@@ -78,9 +79,9 @@ class DeliverymanController {
       return res.status(400).json({ Error: 'Email already exists!' });
     }
 
-    const { id, name } = await deliveryman.update(req.body);
+    const { id, name, avatar_id } = await deliveryman.update(req.body);
 
-    return res.json({ id, name, email });
+    return res.json({ id, name, email, avatar_id });
   }
 
   async show(req, res) {

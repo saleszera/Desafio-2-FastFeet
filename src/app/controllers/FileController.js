@@ -5,7 +5,7 @@ class FileController {
     const { originalname: name, filename: path } = req.file;
 
     const file = await File.create({ name, path });
-    console.log(file);
+
     return res.json(file);
   }
 }

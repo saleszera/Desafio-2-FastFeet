@@ -52,16 +52,14 @@ class UserController {
       return res.status(400).json({ Error: 'Validation fails' });
     }
 
-    const { email, oldPassword } = req.body;
-
     const user = await User.findByPk(req.userId);
 
-    if (email && email !== user.email) {
-      const userExists = await User.findOne({ where: { email } });
+    const { email, oldPassword } = req.body;
 
-      if (userExists) {
-        return res.status(400).json({ Error: 'User already exists' });
-      }
+    if (email && email === user.email) {
+      return res
+        .status(400)
+        .json({ Error: 'You can not update email with this email!' });
     }
 
     if (oldPassword && !(await user.checkPassword(oldPassword))) {
@@ -77,22 +75,33 @@ class UserController {
     });
   }
 
-  async show(req, res) {
-    const users = await User.findAll();
+  async index(req, res) {
+    const { page = 1 } = req.query;
+    const users = await User.findAll({
+      limit: 20,
+      offset: (page - 1) * 20,
+      attributes: ['id', 'name', 'email', 'provider'],
+    });
     return res.json(users);
   }
 
   async delete(req, res) {
-    const { id } = req.params;
+    const user = await User.findOne({ where: { id: req.userId } });
 
-    if (id !== req.userId) {
+    if (user === null) {
       return res
-        .status(403)
-        .json({ Error: 'You can delete only your account!' });
+        .status(400)
+        .json({ Error: 'You can not do it! Verify your token or ID!' });
     }
-    await User.destroy({ where: { id } });
 
-    return res.json({});
+    if (user.id === req.params.id) {
+      return res
+        .status(400)
+        .json({ Error: 'you can delete only your account!' });
+    }
+
+    user.destroy();
+    return res.json({ Message: 'ok' });
   }
 }
 
